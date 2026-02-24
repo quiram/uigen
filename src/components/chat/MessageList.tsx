@@ -5,6 +5,26 @@ import { cn } from "@/lib/utils";
 import { User, Bot, Loader2 } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
+function getToolLabel(toolName: string, args: Record<string, string>): string {
+  const path = args?.path ?? "";
+  if (toolName === "str_replace_editor") {
+    switch (args?.command) {
+      case "create": return `Creating ${path}`;
+      case "str_replace": return `Editing ${path}`;
+      case "insert": return `Inserting into ${path}`;
+      case "view": return `Reading ${path}`;
+      case "undo_edit": return `Undoing edit in ${path}`;
+    }
+  }
+  if (toolName === "file_manager") {
+    switch (args?.command) {
+      case "delete": return `Deleting ${path}`;
+      case "rename": return `Renaming ${path}`;
+    }
+  }
+  return toolName;
+}
+
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
@@ -69,12 +89,12 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                                 {tool.state === "result" && tool.result ? (
                                   <>
                                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                    <span className="text-neutral-700">{tool.toolName}</span>
+                                    <span className="text-neutral-700">{getToolLabel(tool.toolName, tool.args as Record<string, string>)}</span>
                                   </>
                                 ) : (
                                   <>
                                     <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                                    <span className="text-neutral-700">{tool.toolName}</span>
+                                    <span className="text-neutral-700">{getToolLabel(tool.toolName, tool.args as Record<string, string>)}</span>
                                   </>
                                 )}
                               </div>

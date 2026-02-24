@@ -13,14 +13,10 @@ afterEach(() => {
 });
 
 test("MessageList shows empty state when no messages", () => {
-  render(<MessageList messages={[]} />);
+  const { container } = render(<MessageList messages={[]} />);
 
-  expect(
-    screen.getByText("Start a conversation to generate React components")
-  ).toBeDefined();
-  expect(
-    screen.getByText("I can help you create buttons, forms, cards, and more")
-  ).toBeDefined();
+  const messageList = container.querySelector(".space-y-6");
+  expect(messageList?.children).toHaveLength(0);
 });
 
 test("MessageList renders user messages", () => {
@@ -79,6 +75,40 @@ test("MessageList renders messages with parts", () => {
 
   expect(screen.getByText("Creating your component...")).toBeDefined();
   expect(screen.getByText("str_replace_editor")).toBeDefined();
+});
+
+test.each([
+  { toolName: "str_replace_editor", command: "create",      path: "/App.jsx",               expected: "Creating /App.jsx" },
+  { toolName: "str_replace_editor", command: "str_replace", path: "/components/Counter.jsx", expected: "Editing /components/Counter.jsx" },
+  { toolName: "str_replace_editor", command: "insert",      path: "/App.jsx",               expected: "Inserting into /App.jsx" },
+  { toolName: "str_replace_editor", command: "view",        path: "/App.jsx",               expected: "Reading /App.jsx" },
+  { toolName: "str_replace_editor", command: "undo_edit",   path: "/App.jsx",               expected: "Undoing edit in /App.jsx" },
+  { toolName: "file_manager",       command: "delete",      path: "/old.jsx",               expected: "Deleting /old.jsx" },
+  { toolName: "file_manager",       command: "rename",      path: "/old.jsx",               expected: "Renaming /old.jsx" },
+])("MessageList shows human-friendly label for $toolName $command", ({ toolName, command, path, expected }) => {
+  const messages: Message[] = [
+    {
+      id: "1",
+      role: "assistant",
+      content: "",
+      parts: [
+        {
+          type: "tool-invocation",
+          toolInvocation: {
+            toolCallId: "t1",
+            args: { command, path },
+            toolName,
+            state: "result",
+            result: "Success",
+          },
+        },
+      ],
+    },
+  ];
+
+  render(<MessageList messages={messages} />);
+
+  expect(screen.getByText(expected)).toBeDefined();
 });
 
 test("MessageList shows content for assistant message with content", () => {
